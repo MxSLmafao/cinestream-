@@ -1,0 +1,7 @@
+access_codes:
+  - code: CINEMA2024
+    valid_until: 2024-12-31
+  - code: PREVIEW24
+    valid_until: 2024-06-30
+  - code: BETA2024
+    valid_until: 2024-03-31
