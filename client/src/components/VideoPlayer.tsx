@@ -1,6 +1,13 @@
 import { useEffect, useRef } from "react";
 import videojs from "video.js";
 import "video.js/dist/video-js.css";
+import "videojs-chromecast/dist/videojs-chromecast.css";
+import { getChromecastConfig } from "@/lib/vidsrc";
+
+// Import Chromecast plugin
+if (typeof window !== 'undefined') {
+  require('videojs-chromecast');
+}
 
 interface VideoPlayerProps {
   url: string;
@@ -19,7 +26,21 @@ export function VideoPlayer({ url }: VideoPlayerProps) {
       sources: [{
         src: url,
         type: "application/x-mpegURL"
-      }]
+      }],
+      plugins: {
+        chromecast: getChromecastConfig()
+      },
+      controlBar: {
+        children: [
+          'playToggle',
+          'progressControl',
+          'volumePanel',
+          'qualitySelector',
+          'playbackRateMenuButton',
+          'ChromecastButton',
+          'fullscreenToggle'
+        ]
+      }
     });
 
     return () => {

@@ -2,6 +2,7 @@ import { useParams } from "wouter";
 import useSWR from "swr";
 import { VideoPlayer } from "@/components/VideoPlayer";
 import { Button } from "@/components/ui/button";
+import { Cast, Share, Plus } from "lucide-react";
 
 export default function MoviePage() {
   const { id } = useParams();
@@ -23,10 +24,19 @@ export default function MoviePage() {
           
           <div className="flex gap-2">
             <Button variant="secondary">
+              <Plus className="mr-2 h-4 w-4" />
               Add to Watchlist
             </Button>
             <Button variant="outline">
+              <Share className="mr-2 h-4 w-4" />
               Share
+            </Button>
+            <Button variant="outline" className="ml-auto" onClick={() => {
+              // This button is just for visual completeness
+              // Actual casting is handled by the video.js Chromecast plugin
+              console.log('Cast button clicked');
+            }}>
+              <Cast className="h-4 w-4" />
             </Button>
           </div>
         </div>
