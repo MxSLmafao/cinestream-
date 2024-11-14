@@ -51,5 +51,5 @@ task = "packager.installForAll"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "npm run dev"
+args = "DEBUG=express:* NODE_ENV=development npm run dev"
 waitForPort = 5000

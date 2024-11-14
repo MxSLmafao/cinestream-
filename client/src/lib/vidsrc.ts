@@ -12,6 +12,33 @@ export function getStreamUrl(tmdbId: string | number): string {
 }
 
 /**
+ * Enhanced Chromecast configuration with better defaults and error handling
+ */
+export function getChromecastConfig() {
+  return {
+    loadingTimeout: 20, // Increased timeout for better reliability
+    receiverApplicationId: 'CC1AD845', // Default media receiver
+    autoJoinPolicy: 'ORIGIN_SCOPED',
+    language: 'en-US',
+    resumeSavedSession: true, // Attempt to reconnect to previous session
+    androidReceiverCompatible: true,
+    suppressResumeByKey: false, // Allow resuming playback position
+    maxBitrate: 'auto',
+    metadata: {
+      metadataType: 'GENERIC',
+      title: document.title,
+      images: [
+        {
+          url: window.location.origin + '/CineFlix+.png',
+          width: 800,
+          height: 450
+        }
+      ]
+    }
+  };
+}
+
+/**
  * Configures the vidsrc player with required parameters
  */
 export function getPlayerConfig(streamUrl: string) {
@@ -34,6 +61,7 @@ export function getPlayerConfig(streamUrl: string) {
         'volumePanel',
         'qualitySelector',
         'playbackRateMenuButton',
+        'ChromecastButton',
         'fullscreenToggle'
       ]
     },
@@ -61,26 +89,6 @@ export async function validateStreamUrl(streamUrl: string): Promise<boolean> {
     console.error('Error validating stream URL:', error);
     return false;
   }
-}
-
-/**
- * Gets chromecast configuration for the video player
- */
-export function getChromecastConfig() {
-  return {
-    loadingTimeout: 15,
-    receiverApplicationId: 'DEFAULT_RECEIVER_APP_ID',
-    autoJoinPolicy: 'ORIGIN_SCOPED'
-  };
-}
-
-/**
- * Formats error messages from vidsrc API responses
- */
-export function formatStreamError(error: any): string {
-  if (typeof error === 'string') return error;
-  if (error?.message) return error.message;
-  return 'An error occurred while loading the video stream';
 }
 
 /**
@@ -120,4 +128,29 @@ export async function getStreamMetadata(streamUrl: string): Promise<StreamMetada
     console.error('Error getting stream metadata:', error);
     return null;
   }
+}
+
+/**
+ * Format and handle Chromecast specific errors
+ */
+export function formatChromecastError(error: any): string {
+  if (typeof error === 'string') return error;
+  
+  // Handle specific Chromecast error codes
+  if (error?.code) {
+    switch (error.code) {
+      case 'session_error':
+        return 'Failed to connect to Chromecast device';
+      case 'cancel':
+        return 'Casting was cancelled';
+      case 'timeout':
+        return 'Connection to Chromecast timed out';
+      case 'load_media_failed':
+        return 'Failed to load media on Chromecast';
+      default:
+        return error.message || 'An error occurred with Chromecast';
+    }
+  }
+  
+  return error?.message || 'An unknown Chromecast error occurred';
 }

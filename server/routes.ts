@@ -2,7 +2,7 @@ import type { Express } from "express";
 import { db } from "../db";
 import { accessCodes, sessions } from "../db/schema";
 import jwt from 'jsonwebtoken';
-import { getTMDBMovies, searchTMDBMovies } from "./services/tmdb";
+import { getTMDBMovies, searchTMDBMovies, TMDB_BASE_URL } from "./services/tmdb";
 import yaml from 'js-yaml';
 import fs from 'fs';
 import { eq } from "drizzle-orm";
@@ -102,13 +102,23 @@ export function registerRoutes(app: Express) {
   app.get('/api/movies/:id', authenticate, async (req, res) => {
     try {
       const { id } = req.params;
+      if (!TMDB_API_KEY) {
+        throw new Error('TMDB API key not configured');
+      }
+      
       const response = await fetch(
-        `${TMDB_BASE_URL}/movie/${id}?api_key=${TMDB_API_KEY}`
+        `${TMDB_BASE_URL}/movie/${id}?api_key=${TMDB_API_KEY}`,
+        {
+          headers: {
+            'Accept': 'application/json'
+          }
+        }
       );
       
       if (!response.ok) {
         const error = await response.json();
-        throw new Error(error.message || 'Failed to fetch movie details');
+        console.error('TMDB API error:', error);
+        throw new Error(error.status_message || 'Failed to fetch movie details');
       }
       
       const movie = await response.json();
