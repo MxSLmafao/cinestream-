@@ -67,13 +67,14 @@ export default function AuthPage() {
               name="code"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Access Code</FormLabel>
+                  <FormLabel className="text-foreground">Access Code</FormLabel>
                   <FormControl>
                     <Input 
                       placeholder="Enter code..." 
                       {...field}
                       value={field.value}
                       onChange={field.onChange}
+                      className="bg-background text-foreground placeholder:text-muted-foreground"
                     />
                   </FormControl>
                 </FormItem>
