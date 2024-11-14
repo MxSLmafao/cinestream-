@@ -1,6 +1,6 @@
 import { MovieCard } from "./MovieCard";
 
-interface Movie {
+export interface Movie {
   id: number;
   title: string;
   poster_path: string;
@@ -12,7 +12,13 @@ interface MovieGridProps {
 }
 
 export function MovieGrid({ movies }: MovieGridProps) {
-  if (!movies) return null;
+  if (!movies?.length) {
+    return (
+      <div className="text-center py-8 text-muted-foreground">
+        No movies found
+      </div>
+    );
+  }
 
   return (
     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">

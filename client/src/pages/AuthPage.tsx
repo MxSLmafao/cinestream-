@@ -11,14 +11,19 @@ const schema = z.object({
   code: z.string().min(6),
 });
 
+type FormData = z.infer<typeof schema>;
+
 export default function AuthPage() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
-  const form = useForm({
+  const form = useForm<FormData>({
     resolver: zodResolver(schema),
+    defaultValues: {
+      code: ''
+    }
   });
 
-  const onSubmit = async (data: z.infer<typeof schema>) => {
+  const onSubmit = async (data: FormData) => {
     try {
       const res = await fetch('/api/auth', {
         method: 'POST',
@@ -64,7 +69,12 @@ export default function AuthPage() {
                 <FormItem>
                   <FormLabel>Access Code</FormLabel>
                   <FormControl>
-                    <Input placeholder="Enter code..." {...field} />
+                    <Input 
+                      placeholder="Enter code..." 
+                      {...field}
+                      value={field.value}
+                      onChange={field.onChange}
+                    />
                   </FormControl>
                 </FormItem>
               )}
