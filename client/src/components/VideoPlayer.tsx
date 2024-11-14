@@ -8,9 +8,10 @@ import { getChromecastConfig } from "@/lib/vidsrc";
 interface VideoPlayerProps {
   url: string;
   headers?: Record<string, string>;
+  onError?: (error: Error) => void;
 }
 
-export function VideoPlayer({ url, headers }: VideoPlayerProps) {
+export function VideoPlayer({ url, headers, onError }: VideoPlayerProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const playerRef = useRef<VideoJsPlayerWithChromecast | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -74,14 +75,29 @@ export function VideoPlayer({ url, headers }: VideoPlayerProps) {
 
         playerRef.current = player;
 
+        // Handle player errors
+        player.on('error', function() {
+          const error = new Error(player.error()?.message || 'Video playback error');
+          setError(error.message);
+          onError?.(error);
+        });
+
         // Initialize Chromecast if available
         if (isChromecastSupported && player.chromecast) {
           player.chromecast();
+          
+          // Handle Chromecast errors
+          player.on('chromecastError', function(error: Error) {
+            console.error('Chromecast error:', error);
+            onError?.(error);
+          });
         }
+
       } catch (err) {
-        console.error('Error initializing player:', err);
-        setError('Failed to initialize video player');
-        throw err;
+        const error = err instanceof Error ? err : new Error('Failed to initialize video player');
+        console.error('Error initializing player:', error);
+        setError(error.message);
+        onError?.(error);
       }
     };
 
@@ -90,8 +106,10 @@ export function VideoPlayer({ url, headers }: VideoPlayerProps) {
 
     initPlayer()
       .catch(err => {
-        console.error('Error initializing player:', err);
-        setError('Failed to load video player');
+        const error = err instanceof Error ? err : new Error('Failed to load video player');
+        console.error('Error initializing player:', error);
+        setError(error.message);
+        onError?.(error);
       })
       .finally(() => setIsLoading(false));
 
@@ -101,7 +119,7 @@ export function VideoPlayer({ url, headers }: VideoPlayerProps) {
         playerRef.current = null;
       }
     };
-  }, [url, headers]);
+  }, [url, headers, onError]);
 
   return (
     <div className="relative">

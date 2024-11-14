@@ -6,8 +6,10 @@ import { getTMDBMovies, searchTMDBMovies } from "./services/tmdb";
 import yaml from 'js-yaml';
 import fs from 'fs';
 import { eq } from "drizzle-orm";
+import fetch from 'node-fetch';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'cinema-secret';
+const TMDB_API_KEY = process.env.TMDB_API_KEY;
 
 export function registerRoutes(app: Express) {
   // Auth routes
@@ -31,18 +33,6 @@ export function registerRoutes(app: Express) {
     });
 
     res.json({ token });
-  });
-
-  // Movies routes
-  app.get('/api/movies/trending', async (req, res) => {
-    const movies = await getTMDBMovies('trending');
-    res.json(movies);
-  });
-
-  app.get('/api/movies/search', async (req, res) => {
-    const { query } = req.query;
-    const movies = await searchTMDBMovies(query as string);
-    res.json(movies);
   });
 
   // Protected route middleware
@@ -69,10 +59,51 @@ export function registerRoutes(app: Express) {
     }
   };
 
-  // Protected routes
+  // Movies routes
+  app.get('/api/movies/trending', authenticate, async (_req, res) => {
+    try {
+      const movies = await getTMDBMovies('trending');
+      res.json(movies);
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to fetch trending movies' });
+    }
+  });
+
+  app.get('/api/movies/search', authenticate, async (req, res) => {
+    try {
+      const { query } = req.query;
+      const movies = await searchTMDBMovies(query as string);
+      res.json(movies);
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to search movies' });
+    }
+  });
+
+  app.get('/api/movies/:id', authenticate, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const response = await fetch(
+        `https://api.themoviedb.org/3/movie/${id}?api_key=${TMDB_API_KEY}`
+      );
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch movie details');
+      }
+      
+      const movie = await response.json();
+      res.json(movie);
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to fetch movie details' });
+    }
+  });
+
   app.get('/api/movies/:id/stream', authenticate, async (req, res) => {
-    const { id } = req.params;
-    const streamUrl = `https://vidsrc.xyz/embed/movie/${id}`;
-    res.json({ streamUrl });
+    try {
+      const { id } = req.params;
+      const streamUrl = `https://vidsrc.xyz/embed/movie/${id}`;
+      res.json({ streamUrl });
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to get stream URL' });
+    }
   });
 }
