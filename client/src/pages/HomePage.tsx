@@ -8,24 +8,37 @@ import type { Movie } from "@/components/MovieGrid";
 
 export default function HomePage() {
   const [, setLocation] = useLocation();
-  const { data, error, isLoading } = useSWR<{ results: Movie[] }>('/api/movies/trending');
+  const { data, error, isLoading } = useSWR<{ results: Movie[] }>('/api/movies/trending', async (url) => {
+    const res = await fetch(url, {
+      headers: {
+        'Authorization': `Bearer ${localStorage.getItem('token')}`
+      }
+    });
+    if (!res.ok) {
+      const error = await res.json();
+      throw new Error(error.details || error.error || 'Failed to load movies');
+    }
+    return res.json();
+  });
   
   useEffect(() => {
     const token = localStorage.getItem('token');
     if (!token) {
       setLocation('/');
     }
-  }, []);
+  }, [setLocation]);
 
   if (isLoading) return (
     <div className="min-h-screen bg-background text-foreground flex items-center justify-center">
-      Loading...
+      <div className="animate-pulse">Loading movies...</div>
     </div>
   );
 
   if (error) return (
     <div className="min-h-screen bg-background text-foreground flex items-center justify-center">
-      Error loading movies
+      <div className="text-destructive">
+        {error instanceof Error ? error.message : 'Failed to load movies'}
+      </div>
     </div>
   );
 

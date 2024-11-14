@@ -4,19 +4,45 @@ const TMDB_API_KEY = process.env.TMDB_API_KEY;
 const TMDB_BASE_URL = 'https://api.themoviedb.org/3';
 
 export async function getTMDBMovies(type: 'trending' | 'popular') {
-  const endpoint = type === 'trending' 
-    ? '/trending/movie/week'
-    : '/movie/popular';
+  try {
+    const endpoint = type === 'trending' 
+      ? '/trending/movie/week'
+      : '/movie/popular';
+      
+    const res = await fetch(
+      `${TMDB_BASE_URL}${endpoint}?api_key=${TMDB_API_KEY}`
+    );
     
-  const res = await fetch(
-    `${TMDB_BASE_URL}${endpoint}?api_key=${TMDB_API_KEY}`
-  );
-  return res.json();
+    if (!res.ok) {
+      const error = await res.json();
+      console.error('TMDB API error:', error);
+      throw new Error(error.message || 'Failed to fetch movies');
+    }
+    
+    const data = await res.json();
+    return data;
+  } catch (error) {
+    console.error('Error fetching movies:', error);
+    throw error;
+  }
 }
 
 export async function searchTMDBMovies(query: string) {
-  const res = await fetch(
-    `${TMDB_BASE_URL}/search/movie?api_key=${TMDB_API_KEY}&query=${query}`
-  );
-  return res.json();
+  try {
+    const res = await fetch(
+      `${TMDB_BASE_URL}/search/movie?api_key=${TMDB_API_KEY}&query=${query}`
+    );
+
+    if (!res.ok) {
+      const error = await res.json();
+      console.error('TMDB API error:', error);
+      throw new Error(error.message || 'Failed to search movies');
+    }
+
+    const data = await res.json();
+    return data;
+  } catch (error) {
+    console.error('Error searching movies:', error);
+    throw error;
+  }
 }

@@ -63,19 +63,39 @@ export function registerRoutes(app: Express) {
   app.get('/api/movies/trending', authenticate, async (_req, res) => {
     try {
       const movies = await getTMDBMovies('trending');
+      if (!movies?.results) {
+        throw new Error('Invalid response from TMDB API');
+      }
       res.json(movies);
     } catch (error) {
-      res.status(500).json({ error: 'Failed to fetch trending movies' });
+      console.error('Failed to fetch trending movies:', error);
+      res.status(500).json({ 
+        error: 'Failed to fetch trending movies',
+        details: error instanceof Error ? error.message : 'Unknown error'
+      });
     }
   });
 
   app.get('/api/movies/search', authenticate, async (req, res) => {
     try {
       const { query } = req.query;
+      if (!query) {
+        return res.status(400).json({ 
+          error: 'Missing search query',
+          details: 'Search query parameter is required'
+        });
+      }
       const movies = await searchTMDBMovies(query as string);
+      if (!movies?.results) {
+        throw new Error('Invalid response from TMDB API');
+      }
       res.json(movies);
     } catch (error) {
-      res.status(500).json({ error: 'Failed to search movies' });
+      console.error('Failed to search movies:', error);
+      res.status(500).json({ 
+        error: 'Failed to search movies',
+        details: error instanceof Error ? error.message : 'Unknown error'
+      });
     }
   });
 
@@ -83,17 +103,25 @@ export function registerRoutes(app: Express) {
     try {
       const { id } = req.params;
       const response = await fetch(
-        `https://api.themoviedb.org/3/movie/${id}?api_key=${TMDB_API_KEY}`
+        `${TMDB_BASE_URL}/movie/${id}?api_key=${TMDB_API_KEY}`
       );
       
       if (!response.ok) {
-        throw new Error('Failed to fetch movie details');
+        const error = await response.json();
+        throw new Error(error.message || 'Failed to fetch movie details');
       }
       
       const movie = await response.json();
+      if (!movie?.id) {
+        throw new Error('Invalid movie data received');
+      }
       res.json(movie);
     } catch (error) {
-      res.status(500).json({ error: 'Failed to fetch movie details' });
+      console.error('Failed to fetch movie details:', error);
+      res.status(500).json({ 
+        error: 'Failed to fetch movie details',
+        details: error instanceof Error ? error.message : 'Unknown error'
+      });
     }
   });
 
@@ -103,7 +131,11 @@ export function registerRoutes(app: Express) {
       const streamUrl = `https://vidsrc.xyz/embed/movie/${id}`;
       res.json({ streamUrl });
     } catch (error) {
-      res.status(500).json({ error: 'Failed to get stream URL' });
+      console.error('Failed to get stream URL:', error);
+      res.status(500).json({ 
+        error: 'Failed to get stream URL',
+        details: error instanceof Error ? error.message : 'Unknown error'
+      });
     }
   });
 }
