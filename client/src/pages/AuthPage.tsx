@@ -43,8 +43,15 @@ export default function AuthPage() {
   return (
     <div className="min-h-screen bg-background flex items-center justify-center">
       <div className="w-full max-w-md space-y-8 p-8">
-        <div className="text-center">
-          <h1 className="text-4xl font-bold mb-2">Cinema Stream</h1>
+        <div className="text-center space-y-6">
+          <div className="flex flex-col items-center">
+            <img 
+              src="/CineFlix+.png" 
+              alt="CineFlix+" 
+              className="w-64 h-auto mb-4"
+              loading="eager"
+            />
+          </div>
           <p className="text-muted-foreground">Enter your access code to continue</p>
         </div>
 
