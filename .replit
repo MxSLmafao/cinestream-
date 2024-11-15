@@ -14,6 +14,10 @@ run = ["npm", "run", "start"]
 localPort = 5000
 externalPort = 80
 
+[[ports]]
+localPort = 9229
+externalPort = 3000
+
 [packager]
 language = "nodejs"
 [packager.features]
@@ -51,5 +55,5 @@ task = "packager.installForAll"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "DEBUG=express:* NODE_ENV=development npm run dev"
+args = "NODE_ENV=development DEBUG=express:*,server:*,cinema:* npm run dev"
 waitForPort = 5000
